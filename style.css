@@ -186,16 +186,30 @@ h1 {
 }
 
 .photo-wrap img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: opacity 0.5s ease, transform 0.6s ease;
+  transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
-.photo-wrap img.fade {
+.photo-wrap img:first-child {
+  position: relative;
+}
+
+.photo-wrap img.hidden {
   opacity: 0;
+}
+
+.photo-wrap img.scale-out {
   transform: scale(1.08);
+  opacity: 0;
+}
+
+.photo-wrap img.scale-in {
+  transform: scale(1);
 }
 
 .badge {

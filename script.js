@@ -23,14 +23,18 @@ const slides = [
 
 let index = 0;
 let autoplayTimer = null;
+let moving = false;
 
 const photo = document.getElementById("photo");
+const photoNext = document.getElementById("photoNext");
 const title = document.getElementById("title");
 const message = document.getElementById("message");
 const counter = document.getElementById("counter");
 const dots = document.getElementById("dots");
 const nextBtn = document.getElementById("nextBtn");
 const prevBtn = document.getElementById("prevBtn");
+
+const msgBox = message.parentElement;
 
 slides.forEach((_, i) => {
   const dot = document.createElement("span");
@@ -44,29 +48,64 @@ function updateDots() {
   });
 }
 
+const cache = new Set();
+
+function preload(src) {
+  if (cache.has(src)) return;
+  cache.add(src);
+  const img = new Image();
+  img.src = src;
+}
+
+slides.forEach(s => preload(s.image));
+
 function showSlide(newIndex) {
-  index = (newIndex + slides.length) % slides.length;
+  if (moving) return;
+  newIndex = (newIndex + slides.length) % slides.length;
+  if (newIndex === index) return;
+  moving = true;
 
-  photo.classList.add("fade");
-  message.parentElement.style.opacity = "0";
-  message.parentElement.style.transform = "translateY(10px)";
+  const slide = slides[newIndex];
+  const prevImg = index % 2 === 0 ? photo : photoNext;
+  const nextImg = index % 2 === 0 ? photoNext : photo;
 
-  clearTimeout(photo._timer);
+  nextImg.classList.remove("hidden");
 
-  photo._timer = setTimeout(() => {
-    const slide = slides[index];
-    photo.src = slide.image;
+  nextImg.style.transition = "none";
+  nextImg.style.opacity = "0";
+  nextImg.style.transform = "scale(1.08)";
+  nextImg.src = slide.image;
+
+  void nextImg.offsetHeight;
+
+  nextImg.style.transition = "";
+  nextImg.style.opacity = "1";
+  nextImg.style.transform = "scale(1)";
+
+  prevImg.style.transform = "scale(1.08)";
+  prevImg.style.opacity = "0";
+
+  msgBox.style.opacity = "0";
+  msgBox.style.transform = "translateY(10px)";
+
+  setTimeout(() => {
+    prevImg.style.transform = "";
+    prevImg.style.opacity = "";
+    prevImg.classList.add("hidden");
+
+    index = newIndex;
     title.textContent = slide.title;
     message.textContent = slide.message;
     counter.textContent = `${index + 1} / ${slides.length}`;
+    updateDots();
 
     requestAnimationFrame(() => {
-      photo.classList.remove("fade");
-      message.parentElement.style.opacity = "1";
-      message.parentElement.style.transform = "translateY(0)";
-      updateDots();
+      msgBox.style.opacity = "1";
+      msgBox.style.transform = "translateY(0)";
     });
-  }, 300);
+
+    moving = false;
+  }, 550);
 }
 
 function startAutoplay() {
@@ -93,20 +132,19 @@ document.addEventListener("keydown", (event) => {
 });
 
 let touchStartX = 0;
-let touchEndX = 0;
 
 document.addEventListener("touchstart", (e) => {
   touchStartX = e.changedTouches[0].screenX;
 }, { passive: true });
 
 document.addEventListener("touchend", (e) => {
-  touchEndX = e.changedTouches[0].screenX;
-  const diff = touchStartX - touchEndX;
+  const diff = touchStartX - e.changedTouches[0].screenX;
   if (Math.abs(diff) > 50) {
     if (diff > 0) { showSlide(index + 1); resetAutoplay(); }
     else { showSlide(index - 1); resetAutoplay(); }
   }
 }, { passive: true });
 
+photoNext.classList.add("hidden");
 showSlide(0);
 startAutoplay();
