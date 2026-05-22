@@ -28,8 +28,21 @@ const photo = document.getElementById("photo");
 const title = document.getElementById("title");
 const message = document.getElementById("message");
 const counter = document.getElementById("counter");
+const dots = document.getElementById("dots");
 const nextBtn = document.getElementById("nextBtn");
 const prevBtn = document.getElementById("prevBtn");
+
+slides.forEach((_, i) => {
+  const dot = document.createElement("span");
+  dot.className = "dot" + (i === 0 ? " active" : "");
+  dots.appendChild(dot);
+});
+
+function updateDots() {
+  document.querySelectorAll(".dot").forEach((dot, i) => {
+    dot.classList.toggle("active", i === index);
+  });
+}
 
 function showSlide(newIndex) {
   index = (newIndex + slides.length) % slides.length;
@@ -51,6 +64,7 @@ function showSlide(newIndex) {
       photo.classList.remove("fade");
       message.parentElement.style.opacity = "1";
       message.parentElement.style.transform = "translateY(0)";
+      updateDots();
     });
   }, 300);
 }
